@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
+        }
+        #main{
+            background: transparent;
+        }
+    </style>
+</head>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Custom animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-orange-500 flex items-center justify-center min-h-screen">
+    <div class="bg-white rounded-lg shadow-lg p-8 fade-in w-full max-w-md">
+        <h1 class="text-2xl font-bold text-center mb-6">Admin Login</h1>
+        <form id="login-form" class="space-y-4" onsubmit="loginAdmin(event)">
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700">Admin Name</label>
+                <input type="text" id="username" required class="mt-1 p-2 border border-gray-300 rounded-md w-full" placeholder="Enter your admin name">
+                <p id="login-username-error" class="text-red-600 text-sm hidden">Admin name invalid.</p>
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" required class="mt-1 p-2 border border-gray-300 rounded-md w-full" placeholder="Enter your password">
+                <p id="login-password-error" class="text-red-600 text-sm hidden">Password must be between 4 to 8 characters.</p>
+                <p id="login-password-mismatch-error" class="text-red-600 text-sm hidden">Invalid password. Please try again.</p>
+            </div>
+            <div class="flex justify-between">
+                <a href="#" class="text-sm text-orange-600 hover:underline" onclick="showRegisterForm()">Admin Register</a>
+            </div>
+            <button type="submit" class="w-full bg-orange-600 text-white font-bold py-2 rounded-md hover:bg-orange-500">Login</button>
+        </form>
+    </div>
+
+    <div id="register-form" class="hidden bg-white rounded-lg shadow-lg p-8 fade-in w-full max-w-md absolute">
+        <h1 class="text-2xl font-bold text-center mb-6">Admin Register</h1>
+        <form onsubmit="registerAdmin(event)" class="space-y-4">
+            <div>
+                <label for="admin-name" class="block text-sm font-medium text-gray-700">Admin Name</label>
+                <input type="text" id="admin-name" required class="mt-1 p-2 border border-gray-300 rounded-md w-full" placeholder="Enter admin name">
+                <p id="register-username-error" class="text-red-600 text-sm hidden">Admin name cannot be empty.</p>
+                <p id="register-username-exists-error" class="text-red-600 text-sm hidden">Admin name already exists.</p>
+            </div>
+            <div>
+                <label for="admin-password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="admin-password" required class="mt-1 p-2 border border-gray-300 rounded-md w-full" placeholder="Enter your password">
+                <p id="register-password-error" class="text-red-600 text-sm hidden">Password must be between 4 to 8 characters.</p>
+            </div>
+            <div>
+                <label for="confirm-password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                <input type="password" id="confirm-password" required class="mt-1 p-2 border border-gray-300 rounded-md w-full" placeholder="Confirm your password">
+                <p id="register-password-mismatch-error" class="text-red-600 text-sm hidden">Passwords do not match.</p>
+            </div>
+            <button type="submit" class="w-full bg-orange-600 text-white font-bold py-2 rounded-md hover:bg-orange-500">Register</button>
+        </form>
+    </div>
+
+    <script>
+        // Retrieve users from local storage
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+
+        function showRegisterForm() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+        }
+
+        function loginAdmin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Reset error messages
+            document.getElementById('login-username-error').classList.add('hidden');
+            document.getElementById('login-password-error').classList.add('hidden');
+            document.getElementById('login-password-mismatch-error').classList.add('hidden');
+
+            // Find user in local storage
+            const user = users.find(u => u.username === username);
+            if (!user) {
+                document.getElementById('login-username-error').classList.remove('hidden');
+                return;
+            }
+
+            // Check for password validity
+            if (password.length < 4 || password.length > 8) {
+                document.getElementById('login-password-error').classList.remove('hidden');
+                return;
+            }
+
+            // Check for password match
+            if (password !== user.password) {
+                document.getElementById('login-password-mismatch-error').classList.remove('hidden');
+                return;
+            }
+
+            // Redirect to main.html on successful login
+            window.location.href = './demo.html';
+        }
+
+        function registerAdmin(event) {
+            event.preventDefault();
+            const adminName = document.getElementById('admin-name').value;
+            const adminPassword = document.getElementById('admin-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            // Reset error messages
+            document.getElementById('register-username-error').classList.add('hidden');
+            document.getElementById('register-password-error').classList.add('hidden');
+            document.getElementById('register-password-mismatch-error').classList.add('hidden');
+            document.getElementById('register-username-exists-error').classList.add('hidden');
+
+            // Validate admin name
+            if (!adminName) {
+                document.getElementById('register-username-error').classList.remove('hidden');
+                return;
+            }
+
+            // Check if username already exists
+            if (users.some(u => u.username === adminName)) {
+                document.getElementById('register-username-exists-error').classList.remove('hidden');
+                return;
+            }
+
+            // Validate password length
+            if (adminPassword.length < 4 || adminPassword.length > 8) {
+                document.getElementById('register-password-error').classList.remove('hidden');
+                return;
+            }
+
+            // Validate password confirmation
+            if (adminPassword !== confirmPassword) {
+                document.getElementById('register-password-mismatch-error').classList.remove('hidden');
+                return;
+            }
+
+            // Store the new admin credentials
+            users.push({ username: adminName, password: adminPassword });
+            localStorage.setItem('users', JSON.stringify(users));
+
+            // Alert and redirect to login page after registration
+            alert("Registration successful! Redirecting to login...");
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

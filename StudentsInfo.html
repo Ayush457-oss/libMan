@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Records</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col min-h-screen">
+    <nav class="bg-orange-500">
+        <nav class="bg-orange-500">
+            <div class="flex justify-center">
+                <a class="text-white py-2 px-4 nav-hover" href="./demo.html">HomePage</a>
+                <a class="text-white py-2 px-4 nav-hover" href="./AddStudent.html">Add Student</a>
+                <a class="text-white py-2 px-4 nav-hover" href="./book.html">Add Book</a>
+                <a class="text-white py-2 px-4 nav-hover" href="./Main.html">Issue Book</a>
+                <a class="text-white py-2 px-4 nav-hover" href="./viewbooks.html">View Books</a>   
+                <a class="text-white py-2 px-4 nav-hover" href="./issued.html">Issued Books</a>
+                <a class="text-white py-2 px-4 nav-hover" href="./searchbooks.html">Search Books</a>
+            </div>
+        </nav>
+
+
+    <header class="bg-orange-500 text-white p-4 text-center">
+        <h1 class="text-2xl font-bold">Student Records</h1>
+    </header>
+    
+
+    <main class="flex-grow p-6">
+        <div class="mb-4">
+            <input type="text" id="searchBar" placeholder="Search by Registration Number, Name, or Year" class="border border-gray-300 rounded-md p-2 w-full" />
+        </div>
+
+        <table class="min-w-full bg-white rounded-lg shadow-md">
+            <thead>
+                <tr class="bg-gray-200 text-black-600 uppercase text-sm leading-normal">
+                    <th class="py-3 px-6 text-left">Registration Number</th>
+                    <th class="py-3 px-6 text-left">Name</th>
+                    <th class="py-3 px-6 text-left">Year of Admission</th>
+                    <th class="py-3 px-6 text-left">Phone Number</th> <!-- New column for Phone Number -->
+                </tr>
+            </thead>
+            <tbody id="studentTable" class="text--600 text-sm font-light">
+                <!-- Student data will be inserted here -->
+            </tbody>
+        </table>
+    </main>
+
+    <footer class="bg-black text-white text-center p-4">
+        <p>&copy; 2024 Your School Name. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const studentTable = document.getElementById('studentTable');
+        const searchBar = document.getElementById('searchBar');
+
+        // Function to render student data in the table
+        function renderStudents(students) {
+            studentTable.innerHTML = '';
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                row.classList.add('border-b', 'border-gray-200');
+    
+                row.innerHTML = `
+                    <td class="py-3 px-6">${student.regNumber}</td>
+                    <td class="py-3 px-6">${student.name}</td>
+                    <td class="py-3 px-6">${student.yearOfAdmission}</td>
+                    <td class="py-3 px-6">${student.phoneNumber}</td>  <!-- New Phone Number field -->
+                `;
+    
+                studentTable.appendChild(row);
+            });
+        }
+
+        // Function to filter students based on search input
+        function filterStudents() {
+            const query = searchBar.value.toLowerCase();
+            const students = JSON.parse(localStorage.getItem('students')) || [];
+            const filteredStudents = students.filter(student => 
+                student.regNumber.toLowerCase().includes(query) ||
+                student.name.toLowerCase().includes(query) ||
+                student.yearOfAdmission.toString().includes(query)
+            );
+            renderStudents(filteredStudents);
+        }
+
+        // Event listener for search input
+        searchBar.addEventListener('input', filterStudents);
+
+        // Render students on page load
+        window.onload = () => {
+            const students = JSON.parse(localStorage.getItem('students')) || [];
+            renderStudents(students);
+        };
+    </script>
+    
+
+</body>
+</html>

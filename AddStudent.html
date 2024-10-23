@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Student</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col min-h-screen">
+    <nav class="bg-orange-500">
+        <div class="flex justify-center">
+            <a class="text-white py-2 px-4 nav-hover" href="./demo.html">HomePage</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./book.html">Add Book</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./Main.html">Issue Book</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./viewbooks.html">View Books</a>   
+            <a class="text-white py-2 px-4 nav-hover" href="./issued.html">Issued Books</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./searchbooks.html">Search Books</a>
+        </div>
+    </nav>
+
+    <header class="bg-orange-500 text-white p-4 text-center">
+        <h1 class="text-2xl font-bold">Add Student</h1>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center">
+        <form id="addStudentForm" class="bg-white p-6 rounded shadow-md w-80">
+            <label class="block text-sm font-medium text-gray-700" for="regNumber">Registration Number:</label>
+            <input class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" type="text" id="regNumber" name="regNumber" required>
+
+            <label class="block text-sm font-medium text-gray-700 mt-4" for="name">Name:</label>
+            <input class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" type="text" id="name" name="name" required>
+
+            <label class="block text-sm font-medium text-gray-700 mt-4" for="yearOfAdmission">Year of Admission:</label>
+            <input class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" type="number" id="yearOfAdmission" name="yearOfAdmission" required min="2000" max="2100">
+
+            <label class="block text-sm font-medium text-gray-700 mt-4" for="phoneNumber">Phone Number:</label>
+            <input class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" type="tel" id="phoneNumber" name="phoneNumber" required>
+
+            <button class="mt-6 w-full bg-orange-500 text-white p-2 rounded hover:bg-orange-600" type="submit">Add Student</button>
+        </form>
+    </main>
+
+    <footer class="bg-black text-white text-center p-4">
+        <p>&copy; 2024 Your School Name. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById('addStudentForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const regNumber = document.getElementById('regNumber').value;
+            const name = document.getElementById('name').value;
+            const yearOfAdmission = document.getElementById('yearOfAdmission').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+
+            let students = JSON.parse(localStorage.getItem('students')) || [];
+
+            // Check if the registration number already exists
+            const studentExists = students.some(student => student.regNumber === regNumber);
+
+            if (studentExists) {
+                alert('A student with this Registration Number already exists!');
+            } else {
+                const student = { regNumber, name, yearOfAdmission, phoneNumber };
+                students.push(student);
+                localStorage.setItem('students', JSON.stringify(students));
+
+                alert('Student added successfully!');
+                this.reset();
+            }
+        });
+    </script>
+
+</body>
+</html>

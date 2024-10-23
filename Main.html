@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue Book - Library Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-200">
+    <nav class="bg-orange-500">
+        <div class="flex justify-center">
+            <a class="text-white py-2 px-4 nav-hover" href="./demo.html">HomePage</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./AddStudent.html">Add Student</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./book.html">Add Book</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./Main.html">Issue Book</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./viewbooks.html">View Books</a>   
+            <a class="text-white py-2 px-4 nav-hover" href="./issued.html">Issued Books</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./searchbooks.html">Search Books</a>
+        </div>
+    </nav>
+
+    <header class="bg-orange-500 text-white p-4 text-center">
+        <h1 class="text-2xl font-bold">Issue Book</h1>
+    </header>
+
+    <main class="flex-grow p-6">
+        <div class="mb-4">
+            <h2 class="text-xl font-semibold mb-2">Search Student</h2>
+            <input type="text" id="studentSearch" placeholder="Search by Registration Number, Name, or Year" class="border border-gray-300 rounded-md p-2 w-full" />
+            <div id="studentInfo" class="mt-4"></div>
+        </div>
+
+        <div class="mb-4">
+            <h2 class="text-xl font-semibold mb-2">Search Book</h2>
+            <input type="text" id="bookSearch" placeholder="Search by Book ID, Title, Author, or Year" class="border border-gray-300 rounded-md p-2 w-full" />
+            <div id="bookInfo" class="mt-4"></div>
+        </div>
+
+        <div class="mt-6">
+            <h2 class="text-xl font-semibold mb-2">Issue Details</h2>
+            <div id="issueDetails" class="bg-white p-4 rounded shadow-md">
+                <p class="font-semibold">Issue Date: <span id="issueDate"></span></p>
+                <p class="font-semibold">Return Date: <span id="returnDate"></span></p>
+                <button class="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600" id="issueButton" disabled>Issue Book</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-black text-white text-center p-4">
+        <p>&copy; 2024 Library Management System</p>
+    </footer>
+
+    <script>
+        const studentSearch = document.getElementById('studentSearch');
+        const bookSearch = document.getElementById('bookSearch');
+        const studentInfo = document.getElementById('studentInfo');
+        const bookInfo = document.getElementById('bookInfo');
+        const issueButton = document.getElementById('issueButton');
+        const issueDateElement = document.getElementById('issueDate');
+        const returnDateElement = document.getElementById('returnDate');
+
+        function formatDate(date) {
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            return new Intl.DateTimeFormat('en-GB', options).format(date);
+        }
+
+        function updateIssueDates() {
+            const issueDate = new Date();
+            const returnDate = new Date(issueDate);
+            returnDate.setDate(returnDate.getDate() + 15);
+            issueDateElement.textContent = formatDate(issueDate);
+            returnDateElement.textContent = formatDate(returnDate);
+        }
+
+        function renderStudent(student) {
+            studentInfo.innerHTML = `
+                <p class="bg-gray-100 p-2 rounded">${student.regNumber} - ${student.name} (${student.yearOfAdmission})</p>
+            `;
+            updateIssueDates();
+            issueButton.disabled = false; // Enable the issue button
+        }
+
+        function renderBook(book) {
+            bookInfo.innerHTML = `
+                <p class="bg-gray-100 p-2 rounded">${book.id} - ${book.title} by ${book.author} (${book.year})</p>
+            `;
+        }
+
+        studentSearch.addEventListener('input', () => {
+            const query = studentSearch.value.toLowerCase();
+            const students = JSON.parse(localStorage.getItem('students')) || [];
+            const filteredStudents = students.filter(student =>
+                student.regNumber.toLowerCase().includes(query) ||
+                student.name.toLowerCase().includes(query) ||
+                student.yearOfAdmission.toString().includes(query)
+            );
+            studentInfo.innerHTML = filteredStudents.map(student =>
+                `<p class="cursor-pointer" onclick='renderStudent(${JSON.stringify(student)})'>${student.regNumber} - ${student.name} (${student.yearOfAdmission})</p>`
+            ).join('');
+        });
+
+        bookSearch.addEventListener('input', () => {
+            const query = bookSearch.value.toLowerCase();
+            const books = JSON.parse(localStorage.getItem('books')) || [];
+            const issuedBooks = JSON.parse(localStorage.getItem('issuedBooks')) || [];
+
+            // Get IDs of issued books
+            const issuedBookIds = issuedBooks.map(issued => issued.book.id);
+
+            // Filter books based on the search query and exclude issued books
+            const filteredBooks = books.filter(book =>
+                (book.id.toLowerCase().includes(query) ||
+                 book.title.toLowerCase().includes(query) ||
+                 book.author.toLowerCase().includes(query) ||
+                 book.year.toString().includes(query)) &&
+                 !issuedBookIds.includes(book.id) // Exclude issued books
+            );
+
+            // Display filtered books
+            bookInfo.innerHTML = filteredBooks.map(book =>
+                `<p class="cursor-pointer" onclick='renderBook(${JSON.stringify(book)})'>
+                    ${book.id} - ${book.title} by ${book.author} (${book.year})
+                </p>`
+            ).join('');
+        });
+
+        issueButton.addEventListener('click', () => {
+            const issuedBooks = JSON.parse(localStorage.getItem('issuedBooks')) || [];
+            const studentRegNumber = studentInfo.innerText.split(' - ')[0]; // Extract student reg number
+            const currentIssuedBooks = issuedBooks.filter(issued => issued.student.regNumber === studentRegNumber);
+
+            // Check if the student already has 5 books
+            if (currentIssuedBooks.length >= 5) {
+                alert("This student has already issued the maximum limit of 5 books.");
+                return;
+            }
+
+            // Create an issued book object
+            const issuedBook = {
+                student: {
+                    regNumber: studentRegNumber,
+                    name: studentInfo.innerText.split(' - ')[1].split(' (')[0]
+                },
+                book: {
+                    id: bookInfo.innerText.split(' - ')[0],
+                    title: bookInfo.innerText.split(' - ')[1].split(' by')[0]
+                },
+                issueDate: document.getElementById('issueDate').textContent,
+                returnDate: document.getElementById('returnDate').textContent
+            };
+
+            // Add the issued book to the array
+            issuedBooks.push(issuedBook);
+
+            // Save the updated issued books array to local storage
+            localStorage.setItem('issuedBooks', JSON.stringify(issuedBooks));
+
+            alert('Book issued successfully!');
+
+            // Reset or clear the fields after issuing
+            studentInfo.innerHTML = '';
+            bookInfo.innerHTML = '';
+            studentSearch.value = '';
+            bookSearch.value = '';
+            issueButton.disabled = true; // Disable the button again
+        });
+    </script>
+
+</body>
+</html>

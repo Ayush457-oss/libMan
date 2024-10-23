@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Books - Library Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-200">
+    <header class="bg-blue-400 text-white py-4 text-center shadow">
+        <h1 class="text-2xl">Library Management System</h1>
+    </header>
+    <nav class="bg-orange-500">
+        <div class="flex justify-center">
+            <a class="text-white py-2 px-4 nav-hover" href="./demo.html">HomePage</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./AddStudent.html">Add Student</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./book.html">Add Book</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./Main.html">Issue Book</a>  
+            <a class="text-white py-2 px-4 nav-hover" href="./issued.html">Issued Books</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./searchbooks.html">Search Books</a>
+        </div>
+    </nav>
+    <div class="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-md mt-6">
+        <div class="section mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Books List</h2>
+            <div class="flex gap-4">
+                <button class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition" onclick="exportToExcel()">Export to Excel</button>
+                <label class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition cursor-pointer">
+                    Import from Excel
+                    <input type="file" id="importFile" class="hidden" accept=".xls,.xlsx" onchange="importFromExcel(event)">
+                </label>
+            </div>
+            
+            <table class="min-w-full border-collapse border border-gray-200 mt-4" id="booksTable">
+                <thead>
+                    <tr class="bg-gray-800 text-white">
+                        <th class="border border-gray-300 px-4 py-2">Book ID</th>
+                        <th class="border border-gray-300 px-4 py-2">Title</th>
+                        <th class="border border-gray-300 px-4 py-2">Author</th>
+                        <th class="border border-gray-300 px-4 py-2">Publication Year</th>
+                        <th class="border border-gray-300 px-4 py-2">Availability</th>
+                        <th class="border border-gray-300 px-4 py-2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="booksTableBody">
+                    <!-- Books will be loaded here dynamically -->
+                </tbody>
+            </table>
+            <p id="noBooksMessage" class="text-center italic text-gray-500 mt-4"></p>
+        </div>
+    </div>
+
+    <footer class="bg-black text-white text-center py-4">
+        <p>&copy; 2024 Library Management System</p>
+    </footer>
+
+    <script>
+        function loadBooks() {
+            const booksTableBody = document.getElementById('booksTableBody');
+            const noBooksMessage = document.getElementById('noBooksMessage');
+
+            const books = JSON.parse(localStorage.getItem('books')) || [];
+            const issuedBooks = JSON.parse(localStorage.getItem('issuedBooks')) || [];
+
+            if (books.length === 0) {
+                noBooksMessage.textContent = 'No books available.';
+            } else {
+                noBooksMessage.textContent = '';
+
+                booksTableBody.innerHTML = '';
+                books.forEach((book, index) => {
+                    const isIssued = issuedBooks.some(issued => issued.book.id === book.id);
+                    const availability = isIssued 
+                        ? `<a href="./issued.html" class="text-red-500 hover:underline">Not Available</a>` 
+                        : `<span class="text-green-500">Available</span>`;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="border border-gray-300 px-4 py-2">${book.id}</td>
+                        <td class="border border-gray-300 px-4 py-2">${book.title}</td>
+                        <td class="border border-gray-300 px-4 py-2">${book.author}</td>
+                        <td class="border border-gray-300 px-4 py-2">${book.year}</td>
+                        <td class="border border-gray-300 px-4 py-2">${availability}</td>
+                        <td class="border border-gray-300 px-4 py-2">
+                            <button class="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition" onclick="deleteBook(${index})">Delete</button>
+                        </td>
+                    `;
+                    booksTableBody.appendChild(row);
+                });
+            }
+        }
+
+        function deleteBook(index) {
+            const books = JSON.parse(localStorage.getItem('books')) || [];
+            books.splice(index, 1);
+            localStorage.setItem('books', JSON.stringify(books));
+            loadBooks();
+        }
+
+        function exportToExcel() {
+            const booksTable = document.getElementById('booksTable');
+            const html = booksTable.outerHTML;
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'books_list.xls';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function importFromExcel(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+
+                const books = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                const formattedBooks = books.slice(1).map(row => ({
+                    id: row[0],
+                    title: row[1],
+                    author: row[2],
+                    year: row[3]
+                }));
+
+                const existingBooks = JSON.parse(localStorage.getItem('books')) || [];
+                const updatedBooks = existingBooks.concat(formattedBooks);
+                localStorage.setItem('books', JSON.stringify(updatedBooks));
+                loadBooks();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadBooks);
+    </script>
+</body>
+</html>

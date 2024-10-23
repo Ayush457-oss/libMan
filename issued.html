@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issued Books - Library Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-200">
+    <nav class="bg-orange-500">
+        <div class="flex justify-center">
+            <a class="text-white py-2 px-4 nav-hover" href="./demo.html">HomePage</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./AddStudent.html">Add Student</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./book.html">Add Book</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./Main.html">Issue Book</a>
+            <a class="text-white py-2 px-4 nav-hover" href="./viewbooks.html">View Books</a>   
+            <a class="text-white py-2 px-4 nav-hover" href="./searchbooks.html">Search Books</a>
+        </div>
+    </nav>
+    <header class="bg-blue-400 text-white py-4 text-center shadow">
+        <h1 class="text-2xl">Issued Books</h1>
+    </header>
+    <div class="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-md mt-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Issued Books List</h2>
+        
+        <!-- Search Bar -->
+        <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Search by Book ID, Student Name, or Book Title" 
+            class="border border-gray-300 rounded px-4 py-2 mb-4 w-full"
+            onkeyup="searchIssuedBooks()"
+        />
+
+        <button class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition mb-4" onclick="clearAllStorage()">Clear All Data</button>
+
+        <!-- Link to clear all local storage -->
+        <a href="#" class="text-blue-500 underline" onclick="clearAllStorage()">Clear All Local Storage</a>
+
+        <table class="min-w-full border-collapse border border-gray-200 mt-4" id="issuedBooksTable">
+            <thead>
+                <tr class="bg-gray-800 text-white">
+                    <th class="border border-gray-300 px-4 py-2">Student Name</th>
+                    <th class="border border-gray-300 px-4 py-2">Book ID</th>
+                    <th class="border border-gray-300 px-4 py-2">Book Title</th>
+                    <th class="border border-gray-300 px-4 py-2">Issue Date</th>
+                    <th class="border border-gray-300 px-4 py-2">Return Date</th>
+                    <th class="border border-gray-300 px-4 py-2">Fine</th>
+                    <th class="border border-gray-300 px-4 py-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="issuedBooksTableBody">
+                <!-- Issued books will be loaded here dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <footer class="bg-black text-white text-center py-4">
+        <p>&copy; 2024 Library Management System</p>
+    </footer>
+
+    <script>
+        function loadIssuedBooks() {
+            const issuedBooksTableBody = document.getElementById('issuedBooksTableBody');
+            const issuedBooks = JSON.parse(localStorage.getItem('issuedBooks')) || [];
+            issuedBooksTableBody.innerHTML = ''; // Clear existing rows
+        
+            issuedBooks.forEach((issuedBook, index) => {
+                const fine = calculateFine(new Date(issuedBook.returnDate)); // Calculate fine if applicable
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="border border-gray-300 px-4 py-2">${issuedBook.student.name}</td>
+                    <td class="border border-gray-300 px-4 py-2">${issuedBook.book.id}</td>
+                    <td class="border border-gray-300 px-4 py-2">${issuedBook.book.title}</td>
+                    <td class="border border-gray-300 px-4 py-2">${issuedBook.issueDate}</td>
+                    <td class="border border-gray-300 px-4 py-2">${issuedBook.returnDate}</td>
+                    <td class="border border-gray-300 px-4 py-2">${fine} Rs</td>
+                    <td class="border border-gray-300 px-4 py-2">
+                        <button class="bg-green-500 text-white py-1 px-3 rounded hover:bg-green-600 transition" onclick="renewBook(${index})">Renew</button>
+                        <button class="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition" onclick="returnBook(${index})">Return</button>
+                    </td>
+                `;
+                issuedBooksTableBody.appendChild(row);
+            });
+        }
+        
+
+        function searchIssuedBooks() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const issuedBooksTableBody = document.getElementById('issuedBooksTableBody');
+            const issuedBooks = JSON.parse(localStorage.getItem('issuedBooks')) || [];
+
+            issuedBooksTableBody.innerHTML = ''; // Clear existing rows
+
+            const filteredBooks = issuedBooks.filter(issuedBook => {
+                return (
+                    issuedBook.student.name.toLowerCase().includes(input) ||
+                    issuedBook.book.id.toLowerCase().includes(input) ||
+                    issuedBook.book.title.toLowerCase().includes(input)
+                );
+            });
+
+            filteredBooks.forEach((issuedBook, index) => {
+                const fine = calculateFine(new Date(issuedBook.returnDate)); // Calculate fine if applicable
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="border border-gray-300 px-4 py-2">${issuedBook.student.name}</td>
+                    <td class="border border-gray-300 px-4 py-2">${issuedBook.book.id}</td>
+                    <td class="border border-gray-300 px-4 py-2">${issuedBook.book.title}</td>
+                    <td class="border border-gray-300 px-4 py-2">${issuedBook.issueDate}</td>
+                    <td class="border border-gray-300 px-4 py-2">${issuedBook.returnDate}</td>
+                   <td class="border border-gray-300 px-4 py-2">${fine} Rs</td>
+                    <td class="border border-gray-300 px-4 py-2">
+                        <button class="bg-green-500 text-white py-1 px-3 rounded hover:bg-green-600 transition" onclick="renewBook(${index})">Renew</button>
+                        <button class="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition" onclick="returnBook(${index})">Return</button>
+                    </td>
+                `;
+                issuedBooksTableBody.appendChild(row);
+            });
+        }
+
+        function renewBook(index) {
+            const issuedBooks = JSON.parse(localStorage.getItem('issuedBooks')) || [];
+            
+            // Update issue and return dates
+            const issueDate = new Date();
+            const returnDate = new Date();
+            returnDate.setDate(issueDate.getDate() + 15);
+
+            // Calculate fine if the book is overdue
+            const fine = calculateFine(new Date(issuedBooks[index].returnDate));
+
+            // Update issued book details
+            issuedBooks[index].issueDate = formatDate(issueDate);
+            issuedBooks[index].returnDate = formatDate(returnDate);
+
+            // If fine was calculated, alert user
+            if (fine > 0) {
+                alert(`Book was overdue. You will be charged a fine of ${fine} Rs.`);
+            }
+
+            // Save updated issuedBooks back to localStorage
+            localStorage.setItem('issuedBooks', JSON.stringify(issuedBooks));
+
+            // Reload the table to reflect changes
+            loadIssuedBooks();
+            alert('Book renewed successfully!');
+        }
+
+        function returnBook(index) {
+            const issuedBooks = JSON.parse(localStorage.getItem('issuedBooks')) || [];
+            issuedBooks.splice(index, 1); // Remove the book entry from issuedBooks
+            localStorage.setItem('issuedBooks', JSON.stringify(issuedBooks)); // Update localStorage
+            loadIssuedBooks(); // Reload table
+        }
+
+        function calculateFine(returnDate) {
+            return 0; // Always return 0 fine
+        }
+        
+        
+        // Clear all data from local storage
+        function clearAllStorage() {
+            localStorage.clear(); // Remove all items from local storage
+            loadIssuedBooks(); // Refresh the table
+            alert('All data has been cleared!');
+        }
+
+        // Helper function to format dates in DD/MM/YYYY
+        function formatDate(date) {
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            return new Intl.DateTimeFormat('en-GB', options).format(date);
+        }
+
+        // Load issued books when the page is loaded
+        document.addEventListener('DOMContentLoaded', loadIssuedBooks);
+    </script>
+</body>
+</html>

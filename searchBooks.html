@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Books - Library Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<nav class="bg-orange-500">
+    <div class="flex justify-center">
+        <a class="text-white py-2 px-4 nav-hover" href="./AddStudent.html">Add Student</a>
+        <a class="text-white py-2 px-4 nav-hover" href="./book.html">Add Book</a>
+        <a class="text-white py-2 px-4 nav-hover" href="./Main.html">Issue Book</a>
+        <a class="text-white py-2 px-4 nav-hover" href="./viewbooks.html">View Books</a>   
+        <a class="text-white py-2 px-4 nav-hover" href="./issued.html">Issued Books</a>
+        <a class="text-white py-2 px-4 nav-hover" href="./searchbooks.html">Search Books</a>
+    </div>
+</nav>
+    <header class="bg-blue-600 text-white py-4 text-center">
+        <h1 class="text-2xl">Library Management System</h1>
+    </header>
+    
+    <div class="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-md mt-6">
+        <h2 class="text-xl font-semibold mb-4">Search Books</h2>
+        <div class="mb-4">
+            <input type="text" id="searchInput" class="border border-gray-300 p-2 w-full rounded" placeholder="Search by Title, Author, Book ID, or Year" oninput="searchBooks()">
+        </div>
+
+        <div class="mt-4">
+            <table class="min-w-full border-collapse border border-gray-200" id="searchResultsTable">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="border border-gray-300 px-4 py-2">Title</th>
+                        <th class="border border-gray-300 px-4 py-2">Author</th>
+                        <th class="border border-gray-300 px-4 py-2">Book ID</th>
+                        <th class="border border-gray-300 px-4 py-2">Publication Year</th>
+                    </tr>
+                </thead>
+                <tbody id="searchResultsTableBody">
+                    <!-- Search results will be displayed here -->
+                </tbody>
+            </table>
+            <p id="noResultsMessage" class="text-center text-red-500 mt-4"></p>
+        </div>
+    </div>
+
+    <footer class="bg-black text-white py-4 text-center">
+        <p>&copy; 2024 Library Management System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function searchBooks() {
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const searchResultsTableBody = document.getElementById('searchResultsTableBody');
+            const noResultsMessage = document.getElementById('noResultsMessage');
+            const books = JSON.parse(localStorage.getItem('books')) || [];
+
+            searchResultsTableBody.innerHTML = ''; // Clear previous results
+            noResultsMessage.textContent = ''; // Clear no results message
+
+            // Check if the search input is empty
+            if (searchInput.trim() === '') {
+                noResultsMessage.textContent = 'Please enter a search term.';
+                return;
+            }
+
+            // Filter books based on the input
+            const filteredBooks = books.filter(book => 
+                book.title.toLowerCase().includes(searchInput) ||
+                book.author.toLowerCase().includes(searchInput) ||
+                book.id.toLowerCase().includes(searchInput) || // Updated to use bookId
+                book.year.toString().includes(searchInput)
+            );
+
+            if (filteredBooks.length === 0) {
+                noResultsMessage.textContent = 'No results found.';
+            } else {
+                filteredBooks.forEach(book => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="border border-gray-300 px-4 py-2">${book.title}</td>
+                        <td class="border border-gray-300 px-4 py-2">${book.author}</td>
+                        <td class="border border-gray-300 px-4 py-2">${book.id}</td> <!-- Display Book ID -->
+                        <td class="border border-gray-300 px-4 py-2">${book.year}</td>
+                    `;
+                    searchResultsTableBody.appendChild(row);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
